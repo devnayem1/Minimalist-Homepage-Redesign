@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subgrids — Intelligence, Structured.</title>
+  <meta name="description" content="Subgrids redefines how teams organize, visualize, and act on data. Premium infrastructure for modern teams." />
+
+  <!-- Fonts: Instrument Serif (display) + DM Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       CSS CUSTOM PROPERTIES — Design Tokens
+    ============================================================ */
+    :root {
+      --bg:          #0a0a0b;
+      --surface:     #111114;
+      --surface-2:   #18181c;
+      --border:      rgba(255,255,255,0.07);
+      --border-hover:rgba(255,255,255,0.14);
+      --text-primary:#f0ede8;
+      --text-secondary:#8a8785;
+      --text-muted:  #4a4946;
+      --accent:      #c8b89a;        /* warm parchment gold */
+      --accent-glow: rgba(200,184,154,0.12);
+      --accent-dim:  rgba(200,184,154,0.06);
+      --white:       #ffffff;
+
+      --font-display:'Instrument Serif', Georgia, serif;
+      --font-body:   'DM Sans', sans-serif;
+
+      --radius-sm:   6px;
+      --radius-md:   12px;
+      --radius-lg:   20px;
+      --radius-xl:   28px;
+
+      --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    img { display: block; max-width: 100%; }
+    a   { text-decoration: none; color: inherit; }
+
+    /* ============================================================
+       NOISE TEXTURE OVERLAY — gives depth + premium feel
+    ============================================================ */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.6;
+    }
+
+    /* ============================================================
+       LAYOUT UTILITIES
+    ============================================================ */
+    .container {
+      width: 100%;
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    /* ============================================================
+       NAV
+    ============================================================ */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      transition: padding 0.4s var(--ease-out),
+                  background 0.4s var(--ease-out),
+                  border-color 0.4s var(--ease-out);
+      border-bottom: 1px solid transparent;
+    }
+
+    .nav.scrolled {
+      padding: 14px 0;
+      background: rgba(10,10,11,0.85);
+      backdrop-filter: blur(20px) saturate(1.4);
+      -webkit-backdrop-filter: blur(20px) saturate(1.4);
+      border-bottom-color: var(--border);
+    }
+
+    .nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Logo */
+    .nav__logo {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav__logo-mark {
+      width: 22px; height: 22px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+    }
+
+    .nav__logo-mark span {
+      display: block;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: opacity 0.3s;
+    }
+
+    .nav__logo-mark span:nth-child(2),
+    .nav__logo-mark span:nth-child(3) { opacity: 0.4; }
+
+    .nav__logo:hover .nav__logo-mark span { opacity: 1; }
+
+    /* Nav links */
+    .nav__links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      list-style: none;
+    }
+
+    .nav__links a {
+      font-size: 0.83rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.01em;
+    }
+
+    .nav__links a:hover {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Nav CTA */
+    .nav__cta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-ghost {
+      font-family: var(--font-body);
+      font-size: 0.83rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .btn-ghost:hover { color: var(--text-primary); }
+
+    .btn-primary {
+      font-family: var(--font-body);
+      font-size: 0.83rem;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 9px 20px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s, transform 0.2s var(--ease-out),
+                  box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(200,184,154,0.25);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    /* Hamburger (mobile) */
+    .nav__hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav__hamburger span {
+      display: block;
+      width: 22px; height: 1.5px;
+      background: var(--text-secondary);
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    /* ============================================================
+       HERO SECTION
+    ============================================================ */
+    .hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 32px 80px;
+      overflow: hidden;
+    }
+
+    /* Ambient background orbs */
+    .hero__bg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .hero__orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orbFloat 8s ease-in-out infinite alternate;
+    }
+
+    .hero__orb--1 {
+      width: 600px; height: 600px;
+      top: -200px; left: 50%;
+      transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(200,184,154,0.08) 0%, transparent 70%);
+      animation-delay: 0s;
+    }
+
+    .hero__orb--2 {
+      width: 400px; height: 400px;
+      bottom: 0; left: -100px;
+      background: radial-gradient(circle, rgba(120,110,200,0.05) 0%, transparent 70%);
+      animation-delay: -3s;
+    }
+
+    .hero__orb--3 {
+      width: 300px; height: 300px;
+      bottom: 100px; right: -80px;
+      background: radial-gradient(circle, rgba(200,184,154,0.06) 0%, transparent 70%);
+      animation-delay: -5s;
+    }
+
+    @keyframes orbFloat {
+      from { transform: translateX(-50%) translateY(0) scale(1); }
+      to   { transform: translateX(-50%) translateY(-30px) scale(1.05); }
+    }
+
+    .hero__orb--2 { animation-name: orbFloat2; }
+    .hero__orb--3 { animation-name: orbFloat3; }
+
+    @keyframes orbFloat2 {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-20px); }
+    }
+
+    @keyframes orbFloat3 {
+      from { transform: translateY(0); }
+      to   { transform: translateY(15px); }
+    }
+
+    /* Grid lines (subtle) */
+    .hero__grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* Badge */
+    .hero__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 16px 6px 8px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.02em;
+      margin-bottom: 36px;
+
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.7s var(--ease-out) 0.1s forwards;
+    }
+
+    .hero__badge-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,184,154,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero__badge-dot::after {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* Hero headline */
+    .hero__headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6.5vw, 5.2rem);
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      max-width: 820px;
+      margin-bottom: 24px;
+
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.8s var(--ease-out) 0.25s forwards;
+    }
+
+    .hero__headline em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    /* Hero subheadline */
+    .hero__sub {
+      font-size: clamp(0.95rem, 1.6vw, 1.1rem);
+      font-weight: 300;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 44px;
+      letter-spacing: 0.01em;
+
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.8s var(--ease-out) 0.4s forwards;
+    }
+
+    /* Hero CTA group */
+    .hero__cta-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.8s var(--ease-out) 0.55s forwards;
+    }
+
+    .btn-hero {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--accent);
+      border: none;
+      padding: 13px 28px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      position: relative;
+      overflow: hidden;
+      transition: opacity 0.2s, transform 0.25s var(--ease-out),
+                  box-shadow 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .btn-hero:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(200,184,154,0.3);
+    }
+
+    .btn-hero svg { transition: transform 0.2s var(--ease-out); }
+    .btn-hero:hover svg { transform: translateX(3px); }
+
+    .btn-outline {
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 13px 28px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .btn-outline:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* Hero social proof strip */
+    .hero__proof {
+      margin-top: 64px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.8s var(--ease-out) 0.75s forwards;
+    }
+
+    .hero__proof-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .hero__proof-logos {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero__proof-logo {
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .hero__proof-logo:hover { color: var(--text-secondary); }
+
+    /* Scroll indicator */
+    .hero__scroll {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeIn 1s var(--ease-out) 1.4s forwards;
+    }
+
+    .hero__scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--text-muted));
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(1); }
+      50%       { opacity: 1;   transform: scaleY(1.1); }
+    }
+
+    .hero__scroll-text {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      writing-mode: vertical-lr;
+      transform: rotate(180deg);
+    }
+
+    /* ============================================================
+       PRODUCT PREVIEW / MOCK DASHBOARD
+    ============================================================ */
+    .preview {
+      padding: 0 32px 120px;
+      position: relative;
+    }
+
+    .preview__inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Glow behind the card */
+    .preview__glow {
+      position: absolute;
+      inset: -40px;
+      background: radial-gradient(ellipse 80% 50% at 50% 50%, var(--accent-glow), transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+
+    .preview__card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 32px 80px rgba(0,0,0,0.6),
+        0 8px 20px rgba(0,0,0,0.4);
+
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out);
+    }
+
+    .preview__card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Window chrome */
+    .preview__chrome {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .preview__dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preview__dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+
+    .preview__dots span:nth-child(1) { background: #ff5f57; }
+    .preview__dots span:nth-child(2) { background: #febc2e; }
+    .preview__dots span:nth-child(3) { background: #28c840; }
+
+    .preview__url {
+      flex: 1;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      max-width: 260px;
+      margin: 0 auto;
+    }
+
+    /* Dashboard body */
+    .preview__body {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 420px;
+    }
+
+    /* Sidebar */
+    .dash-sidebar {
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      background: rgba(255,255,255,0.01);
+    }
+
+    .dash-sidebar__section {
+      padding: 0 16px;
+      margin-bottom: 24px;
+    }
+
+    .dash-sidebar__label {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding: 0 8px;
+    }
+
+    .dash-sidebar__item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      cursor: default;
+      transition: background 0.15s;
+      margin-bottom: 2px;
+    }
+
+    .dash-sidebar__item:hover,
+    .dash-sidebar__item.active {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+    }
+
+    .dash-sidebar__item.active { color: var(--accent); }
+
+    .dash-sidebar__icon {
+      width: 14px; height: 14px;
+      opacity: 0.6;
+    }
+
+    /* Main dashboard area */
+    .dash-main {
+      padding: 24px 28px;
+      overflow: hidden;
+    }
+
+    .dash-main__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .dash-main__title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .dash-main__actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dash-btn {
+      font-size: 0.72rem;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: default;
+    }
+
+    .dash-btn.primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Metric cards */
+    .dash-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .dash-metric {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .dash-metric__label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .dash-metric__value {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      color: var(--text-primary);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .dash-metric__change {
+      font-size: 0.68rem;
+      color: #6ee7a0;
+    }
+
+    /* Mini sparkline */
+    .dash-chart {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      height: 130px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dash-chart__label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .sparkline {
+      width: 100%;
+      height: 75px;
+    }
+
+    /* ============================================================
+       FEATURES / BENTO
+    ============================================================ */
+    .section {
+      padding: 120px 32px;
+    }
+
+    .section__eyebrow {
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section__eyebrow::before {
+      content: '';
+      display: block;
+      width: 20px; height: 1px;
+      background: var(--accent);
+    }
+
+    .section__headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text-primary);
+      max-width: 600px;
+      margin-bottom: 16px;
+    }
+
+    .section__headline em { font-style: italic; color: var(--accent); }
+
+    .section__sub {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.8;
+    }
+
+    /* Bento grid */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: auto;
+      gap: 14px;
+      margin-top: 60px;
+    }
+
+    .bento__card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s var(--ease-out);
+      cursor: default;
+
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out),
+                  border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .bento__card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .bento__card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    /* Stagger delays */
+    .bento__card:nth-child(2) { transition-delay: 0.08s; }
+    .bento__card:nth-child(3) { transition-delay: 0.16s; }
+    .bento__card:nth-child(4) { transition-delay: 0.24s; }
+    .bento__card:nth-child(5) { transition-delay: 0.32s; }
+
+    .bento__card--a { grid-column: span 7; }
+    .bento__card--b { grid-column: span 5; }
+    .bento__card--c { grid-column: span 4; }
+    .bento__card--d { grid-column: span 4; }
+    .bento__card--e { grid-column: span 4; }
+
+    .bento__card-tag {
+      font-size: 0.62rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bento__card-tag-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .bento__card-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+
+    .bento__card-title em { font-style: italic; color: var(--accent); }
+
+    .bento__card-body {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      font-weight: 300;
+    }
+
+    /* Card decorative glow */
+    .bento__card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .bento__card:hover::before { opacity: 1; }
+
+    /* Visual elements inside bento cards */
+    .bento__visual {
+      margin-top: 24px;
+    }
+
+    /* Mini grid visual */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .mini-grid-cell {
+      height: 28px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+
+    .mini-grid-cell.accent { background: rgba(200,184,154,0.15); border-color: rgba(200,184,154,0.2); }
+    .mini-grid-cell.accent-2 { background: rgba(200,184,154,0.07); }
+
+    /* Flow steps */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .flow-step__num {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,184,154,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* Tags cloud */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .tag-chip {
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border-radius: 100px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .tag-chip.lit { border-color: rgba(200,184,154,0.25); color: var(--accent); background: var(--accent-dim); }
+
+    /* ============================================================
+       HOW IT WORKS
+    ============================================================ */
+    .how {
+      padding: 120px 32px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .how__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-top: 60px;
+    }
+
+    .how__step {
+      background: var(--surface);
+      padding: 40px;
+      position: relative;
+      transition: background 0.3s;
+
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out), background 0.3s;
+    }
+
+    .how__step.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .how__step:nth-child(2) { transition-delay: 0.12s; }
+    .how__step:nth-child(3) { transition-delay: 0.24s; }
+
+    .how__step:hover { background: var(--surface-2); }
+
+    .how__step-num {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--text-muted);
+      letter-spacing: -0.05em;
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .how__step-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .how__step-body {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    /* ============================================================
+       TESTIMONIALS
+    ============================================================ */
+    .testimonials {
+      padding: 120px 32px;
+    }
+
+    .testimonials__grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 56px;
+    }
+
+    .testimonial {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 30px;
+      transition: border-color 0.3s, transform 0.3s var(--ease-out);
+
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out),
+                  border-color 0.3s;
+    }
+
+    .testimonial.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .testimonial:nth-child(2) { transition-delay: 0.1s; }
+    .testimonial:nth-child(3) { transition-delay: 0.2s; }
+
+    .testimonial:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .testimonial__stars {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 18px;
+    }
+
+    .testimonial__star {
+      width: 12px; height: 12px;
+      color: var(--accent);
+    }
+
+    .testimonial__quote {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--text-primary);
+      line-height: 1.65;
+      letter-spacing: -0.01em;
+      margin-bottom: 22px;
+    }
+
+    .testimonial__author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .testimonial__avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    .testimonial__name {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .testimonial__role {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       CTA SECTION
+    ============================================================ */
+    .cta-section {
+      padding: 80px 32px 120px;
+    }
+
+    .cta-section__inner {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 72px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section__inner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 80%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .cta-section__glow {
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 500px; height: 300px;
+      background: radial-gradient(ellipse at center, var(--accent-glow), transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+
+    .cta-section__headline {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      line-height: 1.1;
+      position: relative;
+    }
+
+    .cta-section__headline em { font-style: italic; color: var(--accent); }
+
+    .cta-section__sub {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      margin-bottom: 40px;
+      line-height: 1.8;
+      position: relative;
+    }
+
+    .cta-section__actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .cta-section__note {
+      margin-top: 20px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      position: relative;
+    }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 32px;
+    }
+
+    .footer__inner {
+      max-width: 1160px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer__logo {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .footer__copy {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .footer__links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer__link {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .footer__link:hover { color: var(--text-secondary); }
+
+    /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+      .bento__card--a { grid-column: span 12; }
+      .bento__card--b { grid-column: span 12; }
+      .bento__card--c { grid-column: span 6; }
+      .bento__card--d { grid-column: span 6; }
+      .bento__card--e { grid-column: span 12; }
+
+      .how__grid { grid-template-columns: 1fr; }
+      .testimonials__grid { grid-template-columns: repeat(2, 1fr); }
+      .preview__body { grid-template-columns: 1fr; }
+      .dash-sidebar { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .nav__links { display: none; }
+      .nav__hamburger { display: flex; }
+
+      .hero { padding: 100px 24px 80px; }
+
+      .bento__card--c,
+      .bento__card--d { grid-column: span 12; }
+
+      .testimonials__grid { grid-template-columns: 1fr; }
+
+      .cta-section__inner { padding: 48px 32px; }
+
+      .footer__inner { flex-direction: column; align-items: flex-start; }
+
+      .container { padding: 0 20px; }
+      .section { padding: 80px 20px; }
+      .how { padding: 80px 20px; }
+
+      .dash-metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       NAVIGATION
+  ============================================================ -->
+  <nav class="nav" id="nav" role="navigation" aria-label="Main navigation">
+    <div class="container">
+      <div class="nav__inner">
+
+        <!-- Logo -->
+        <a href="/" class="nav__logo" aria-label="Subgrids home">
+          <div class="nav__logo-mark" aria-hidden="true">
+            <span></span><span></span>
+            <span></span><span></span>
+          </div>
+          Subgrids
+        </a>
+
+        <!-- Links -->
+        <ul class="nav__links" role="list">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#testimonials">Customers</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+
+        <!-- CTA -->
+        <div class="nav__cta">
+          <button class="btn-ghost">Sign in</button>
+          <button class="btn-primary">Get started</button>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button class="nav__hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <section class="hero" aria-label="Hero">
+
+    <!-- Ambient background -->
+    <div class="hero__bg" aria-hidden="true">
+      <div class="hero__grid"></div>
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+      <div class="hero__orb hero__orb--3"></div>
+    </div>
+
+    <!-- Badge -->
+    <div class="hero__badge" role="status">
+      <div class="hero__badge-dot" aria-hidden="true"></div>
+      Now in public beta — 2,000+ teams onboarded
+    </div>
+
+    <!-- Headline -->
+    <h1 class="hero__headline">
+      Data organized.<br/>
+      <em>Decisions accelerated.</em>
+    </h1>
+
+    <!-- Sub -->
+    <p class="hero__sub">
+      Subgrids is the structured workspace where teams connect, visualize,
+      and act on information — without the noise.
+    </p>
+
+    <!-- CTA -->
+    <div class="hero__cta-group">
+      <button class="btn-hero">
+        Start for free
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="btn-outline">See a demo</button>
+    </div>
+
+    <!-- Social proof -->
+    <div class="hero__proof" aria-label="Trusted by leading teams">
+      <p class="hero__proof-label">Trusted by teams at</p>
+      <div class="hero__proof-logos">
+        <span class="hero__proof-logo">Vercel</span>
+        <span class="hero__proof-logo">Linear</span>
+        <span class="hero__proof-logo">Resend</span>
+        <span class="hero__proof-logo">Loom</span>
+        <span class="hero__proof-logo">Raycast</span>
+      </div>
+    </div>
+
+    <!-- Scroll hint -->
+    <div class="hero__scroll" aria-hidden="true">
+      <div class="hero__scroll-line"></div>
+      <span class="hero__scroll-text">scroll</span>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       PRODUCT PREVIEW
+  ============================================================ -->
+  <section class="preview" aria-label="Product preview">
+    <div class="preview__inner">
+      <div class="preview__glow" aria-hidden="true"></div>
+
+      <div class="preview__card js-reveal">
+        <!-- Window chrome -->
+        <div class="preview__chrome">
+          <div class="preview__dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="preview__url">app.subgrids.com / workspace</div>
+        </div>
+
+        <!-- Dashboard body -->
+        <div class="preview__body">
+
+          <!-- Sidebar -->
+          <nav class="dash-sidebar" aria-label="Dashboard sidebar">
+            <div class="dash-sidebar__section">
+              <div class="dash-sidebar__label">Workspace</div>
+              <div class="dash-sidebar__item active">
+                <svg class="dash-sidebar__icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="1" y="1" width="5" height="5" rx="1" fill="currentColor"/>
+                  <rect x="8" y="1" width="5" height="5" rx="1" fill="currentColor" opacity=".4"/>
+                  <rect x="1" y="8" width="5" height="5" rx="1" fill="currentColor" opacity=".4"/>
+                  <rect x="8" y="8" width="5" height="5" rx="1" fill="currentColor" opacity=".4"/>
+                </svg>
+                Overview
+              </div>
+              <div class="dash-sidebar__item">
+                <svg class="dash-sidebar__icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M2 4h10M2 7h10M2 10h6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                Grids
+              </div>
+              <div class="dash-sidebar__item">
+                <svg class="dash-sidebar__icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/>
+                  <path d="M7 4v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                Activity
+              </div>
+            </div>
+            <div class="dash-sidebar__section">
+              <div class="dash-sidebar__label">Views</div>
+              <div class="dash-sidebar__item">
+                <svg class="dash-sidebar__icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M1 10l3-4 3 3 2-3 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Analytics
+              </div>
+              <div class="dash-sidebar__item">
+                <svg class="dash-sidebar__icon" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M5 2H3a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  <path d="M8 2h4v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                  <path d="M12 2L7 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                </svg>
+                Exports
+              </div>
+            </div>
+          </nav>
+
+          <!-- Main -->
+          <main class="dash-main">
+            <div class="dash-main__header">
+              <div class="dash-main__title">Q2 Performance</div>
+              <div class="dash-main__actions">
+                <div class="dash-btn">Filter</div>
+                <div class="dash-btn">Share</div>
+                <div class="dash-btn primary">+ New grid</div>
+              </div>
+            </div>
+
+            <!-- Metrics -->
+            <div class="dash-metrics" role="list" aria-label="Key metrics">
+              <div class="dash-metric" role="listitem">
+                <div class="dash-metric__label">Records synced</div>
+                <div class="dash-metric__value">84.2k</div>
+                <div class="dash-metric__change">↑ 12.4% this month</div>
+              </div>
+              <div class="dash-metric" role="listitem">
+                <div class="dash-metric__label">Active grids</div>
+                <div class="dash-metric__value">217</div>
+                <div class="dash-metric__change">↑ 8 new this week</div>
+              </div>
+              <div class="dash-metric" role="listitem">
+                <div class="dash-metric__label">Automation runs</div>
+                <div class="dash-metric__value">3.1k</div>
+                <div class="dash-metric__change">↑ 24.1% vs last month</div>
+              </div>
+            </div>
+
+            <!-- Sparkline chart -->
+            <div class="dash-chart">
+              <div class="dash-chart__label">Record activity — last 30 days</div>
+              <svg class="sparkline" viewBox="0 0 600 75" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="rgba(200,184,154,0.3)"/>
+                    <stop offset="100%" stop-color="rgba(200,184,154,0)"/>
+                  </linearGradient>
+                </defs>
+                <!-- Area fill -->
+                <path d="M0,60 C20,55 40,50 60,45 C80,40 100,52 120,48 C140,44 160,30 180,28 C200,26 220,40 240,35 C260,30 280,20 300,18 C320,16 340,25 360,22 C380,19 400,10 420,12 C440,14 460,22 480,18 C500,14 520,8 540,6 C560,4 580,8 600,10 L600,75 L0,75 Z" fill="url(#spark-grad)"/>
+                <!-- Line -->
+                <path d="M0,60 C20,55 40,50 60,45 C80,40 100,52 120,48 C140,44 160,30 180,28 C200,26 220,40 240,35 C260,30 280,20 300,18 C320,16 340,25 360,22 C380,19 400,10 420,12 C440,14 460,22 480,18 C500,14 520,8 540,6 C560,4 580,8 600,10" fill="none" stroke="rgba(200,184,154,0.8)" stroke-width="1.5"/>
+              </svg>
+            </div>
+          </main>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FEATURES / BENTO
+  ============================================================ -->
+  <section class="section" id="features" aria-labelledby="features-title">
+    <div class="container">
+      <div class="section__eyebrow">Capabilities</div>
+      <h2 class="section__headline" id="features-title">
+        Every tool you need,<br/> <em>nothing you don't.</em>
+      </h2>
+      <p class="section__sub">
+        Subgrids replaces a stack of disconnected tools with one structured workspace
+        built for teams who move fast and think clearly.
+      </p>
+
+      <!-- Bento cards -->
+      <div class="bento" role="list">
+
+        <!-- Card A — Large -->
+        <article class="bento__card bento__card--a js-reveal" role="listitem">
+          <div class="bento__card-tag">
+            <div class="bento__card-tag-dot" aria-hidden="true"></div>
+            Structure
+          </div>
+          <h3 class="bento__card-title">Flexible grids that think<br/><em>the way you do.</em></h3>
+          <p class="bento__card-body">
+            Build your information architecture freely. Subgrids adapts to your mental model,
+            not the other way around. Link records, define hierarchies, and surface insights instantly.
+          </p>
+          <div class="bento__visual" aria-hidden="true">
+            <div class="mini-grid">
+              <div class="mini-grid-cell accent"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent-2"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent-2"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent-2"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent-2"></div>
+              <div class="mini-grid-cell accent-2"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell"></div>
+              <div class="mini-grid-cell accent-2"></div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card B -->
+        <article class="bento__card bento__card--b js-reveal" role="listitem">
+          <div class="bento__card-tag">
+            <div class="bento__card-tag-dot" aria-hidden="true"></div>
+            Automation
+          </div>
+          <h3 class="bento__card-title">Workflows that run<br/><em>while you sleep.</em></h3>
+          <p class="bento__card-body">
+            Trigger automations on any event. Route data, notify teams,
+            and update records — automatically.
+          </p>
+          <div class="bento__visual" aria-hidden="true">
+            <div class="flow-steps">
+              <div class="flow-step">
+                <div class="flow-step__num">1</div>
+                Record created in Grid A
+              </div>
+              <div class="flow-step">
+                <div class="flow-step__num">2</div>
+                Auto-notify Slack channel
+              </div>
+              <div class="flow-step">
+                <div class="flow-step__num">3</div>
+                Update status → In Review
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card C -->
+        <article class="bento__card bento__card--c js-reveal" role="listitem">
+          <div class="bento__card-tag">
+            <div class="bento__card-tag-dot" aria-hidden="true"></div>
+            Integrations
+          </div>
+          <h3 class="bento__card-title"><em>Connect</em> everything.</h3>
+          <p class="bento__card-body">
+            Native integrations with the tools your team already loves —
+            Notion, Linear, GitHub, Zapier, and more.
+          </p>
+          <div class="bento__visual" aria-hidden="true">
+            <div class="tag-cloud">
+              <span class="tag-chip lit">Notion</span>
+              <span class="tag-chip">GitHub</span>
+              <span class="tag-chip lit">Linear</span>
+              <span class="tag-chip">Slack</span>
+              <span class="tag-chip">Zapier</span>
+              <span class="tag-chip lit">Airtable</span>
+              <span class="tag-chip">Webflow</span>
+              <span class="tag-chip">Stripe</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card D -->
+        <article class="bento__card bento__card--d js-reveal" role="listitem">
+          <div class="bento__card-tag">
+            <div class="bento__card-tag-dot" aria-hidden="true"></div>
+            Permissions
+          </div>
+          <h3 class="bento__card-title"><em>Granular</em> access control.</h3>
+          <p class="bento__card-body">
+            Define who sees, edits, or shares every record.
+            Enterprise-grade security without the enterprise headache.
+          </p>
+        </article>
+
+        <!-- Card E -->
+        <article class="bento__card bento__card--e js-reveal" role="listitem">
+          <div class="bento__card-tag">
+            <div class="bento__card-tag-dot" aria-hidden="true"></div>
+            Analytics
+          </div>
+          <h3 class="bento__card-title">Real-time views.<br/><em>Clear decisions.</em></h3>
+          <p class="bento__card-body">
+            Charts, pivot tables, and dashboards that update as your data does.
+            No exports. No lag. No guesswork.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       HOW IT WORKS
+  ============================================================ -->
+  <section class="how" id="how" aria-labelledby="how-title">
+    <div class="container">
+      <div class="section__eyebrow">Process</div>
+      <h2 class="section__headline" id="how-title">
+        Up and running<br/><em>in minutes.</em>
+      </h2>
+
+      <div class="how__grid" role="list">
+
+        <div class="how__step js-reveal" role="listitem">
+          <div class="how__step-num" aria-hidden="true">01</div>
+          <h3 class="how__step-title">Import or start fresh</h3>
+          <p class="how__step-body">
+            Bring in your existing data from CSV, Airtable, Notion, or any API.
+            Or start from a curated template built for your use case.
+          </p>
+        </div>
+
+        <div class="how__step js-reveal" role="listitem">
+          <div class="how__step-num" aria-hidden="true">02</div>
+          <h3 class="how__step-title">Build your structure</h3>
+          <p class="how__step-body">
+            Define fields, link records, set views, and configure your workspace
+            in minutes — no developer required.
+          </p>
+        </div>
+
+        <div class="how__step js-reveal" role="listitem">
+          <div class="how__step-num" aria-hidden="true">03</div>
+          <h3 class="how__step-title">Invite your team</h3>
+          <p class="how__step-body">
+            Collaborate in real time, automate repetitive tasks,
+            and build workflows that scale with your team.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       TESTIMONIALS
+  ============================================================ -->
+  <section class="testimonials" id="testimonials" aria-labelledby="testimonials-title">
+    <div class="container">
+      <div class="section__eyebrow">Customers</div>
+      <h2 class="section__headline" id="testimonials-title">
+        Teams that <em>moved faster</em><br/>after switching.
+      </h2>
+
+      <div class="testimonials__grid" role="list">
+
+        <article class="testimonial js-reveal" role="listitem">
+          <div class="testimonial__stars" aria-label="5 stars">
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+          </div>
+          <blockquote class="testimonial__quote">
+            "We retired three tools the week we launched on Subgrids.
+            The clarity it brings to our data pipeline is genuinely remarkable."
+          </blockquote>
+          <div class="testimonial__author">
+            <div class="testimonial__avatar" aria-hidden="true">A</div>
+            <div>
+              <div class="testimonial__name">Ariel Fontaine</div>
+              <div class="testimonial__role">Head of Ops, Vercel</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="testimonial js-reveal" role="listitem">
+          <div class="testimonial__stars" aria-label="5 stars">
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+          </div>
+          <blockquote class="testimonial__quote">
+            "The bento grid interface feels like it was designed specifically
+            for how our product team thinks. Nothing else comes close."
+          </blockquote>
+          <div class="testimonial__author">
+            <div class="testimonial__avatar" aria-hidden="true">M</div>
+            <div>
+              <div class="testimonial__name">Mia Chen</div>
+              <div class="testimonial__role">Product Lead, Linear</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="testimonial js-reveal" role="listitem">
+          <div class="testimonial__stars" aria-label="5 stars">
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+            <svg class="testimonial__star" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M6 0l1.5 4.5H12L8.3 7.3l1.4 4.5L6 9l-3.7 2.8 1.4-4.5L0 4.5h4.5z"/></svg>
+          </div>
+          <blockquote class="testimonial__quote">
+            "Subgrids handles our entire client reporting workflow.
+            Setup was fast, and the automations save us 10+ hours a week."
+          </blockquote>
+          <div class="testimonial__author">
+            <div class="testimonial__avatar" aria-hidden="true">J</div>
+            <div>
+              <div class="testimonial__name">James Okafor</div>
+              <div class="testimonial__role">CTO, Resend</div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CTA
+  ============================================================ -->
+  <section class="cta-section" id="pricing" aria-labelledby="cta-title">
+    <div class="container">
+      <div class="cta-section__inner js-reveal">
+        <div class="cta-section__glow" aria-hidden="true"></div>
+        <h2 class="cta-section__headline" id="cta-title">
+          Your data deserves<br/><em>better infrastructure.</em>
+        </h2>
+        <p class="cta-section__sub">
+          Start free. Upgrade when your team is ready.<br/>
+          No credit card required. Cancel anytime.
+        </p>
+        <div class="cta-section__actions">
+          <button class="btn-hero">
+            Start for free
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M3 7h8M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="btn-outline">Talk to sales</button>
+        </div>
+        <p class="cta-section__note">Free plan includes 5 grids, 3 users, and unlimited records.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer__inner">
+      <div class="footer__left">
+        <span class="footer__logo">Subgrids</span>
+        <span class="footer__copy">© 2026 Subgrids, Inc. All rights reserved || Designed By Developer Nayem.</span>
+      </div>
+      <nav class="footer__links" aria-label="Footer navigation">
+        <a href="#" class="footer__link">Privacy</a>
+        <a href="#" class="footer__link">Terms</a>
+        <a href="#" class="footer__link">Security</a>
+        <a href="#" class="footer__link">Status</a>
+        <a href="#" class="footer__link">Twitter / X</a>
+        <a href="#" class="footer__link">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    /* ── Nav scroll state ── */
+    const nav = document.getElementById('nav');
+    const onScroll = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    /* ── Scroll reveal (IntersectionObserver) ── */
+    const reveals = document.querySelectorAll('.js-reveal');
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
+    reveals.forEach(el => revealObserver.observe(el));
+
+    /* ── Magnetic button effect (desktop only) ── */
+    if (window.matchMedia('(hover: hover)').matches) {
+      document.querySelectorAll('.btn-hero, .btn-primary').forEach(btn => {
+        btn.addEventListener('mousemove', e => {
+          const rect = btn.getBoundingClientRect();
+          const x = e.clientX - rect.left - rect.width / 2;
+          const y = e.clientY - rect.top  - rect.height / 2;
+          btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px) translateY(-2px)`;
+        });
+        btn.addEventListener('mouseleave', () => {
+          btn.style.transform = '';
+        });
+      });
+    }
+
+    /* ── Subtle cursor-tracking glow on hero ── */
+    const heroSection = document.querySelector('.hero');
+    if (heroSection && window.matchMedia('(hover: hover)').matches) {
+      heroSection.addEventListener('mousemove', e => {
+        const rect = heroSection.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1);
+        const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
+        heroSection.style.setProperty('--mx', x + '%');
+        heroSection.style.setProperty('--my', y + '%');
+      });
+    }
+
+    /* ── Prefers-reduced-motion: disable animations ── */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.style.setProperty('--ease-out', 'linear');
+      document.querySelectorAll('.hero__orb, .hero__scroll-line').forEach(el => {
+        el.style.animation = 'none';
+      });
+    }
+  </script>
+
+</body>
+</html>
